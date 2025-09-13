@@ -1,0 +1,242 @@
+openapi: 3.0.3
+info:
+  title: SaaS Subscription & User Management API
+  description: |
+    This API allows SaaS platforms to manage users, subscriptions, and plan upgrades.
+    Ideal for B2B SaaS startups to onboard users and handle subscription workflows.
+  version: 1.0.0
+servers:
+- url: https://virtserver.swaggerhub.com/denayalakeenterprise/Subscription-User-Management-API/1.0.0
+  description: SwaggerHub API Auto Mocking
+- url: https://api.saasplatform.com/v1
+  description: Production server
+- url: https://sandbox.saasplatform.com/v1
+  description: Sandbox testing server
+security:
+- BearerAuth: []
+paths:
+  /users:
+    post:
+      tags:
+      - Users
+      summary: Create a new user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+        required: true
+      responses:
+        "201":
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /users/{userId}:
+    get:
+      tags:
+      - Users
+      summary: Get user by ID
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /subscriptions:
+    post:
+      tags:
+      - Subscriptions
+      summary: Create a new subscription
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Subscription"
+        required: true
+      responses:
+        "201":
+          description: Subscription created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Subscription"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /subscriptions/{subscriptionId}:
+    get:
+      tags:
+      - Subscriptions
+      summary: Get subscription by ID
+      parameters:
+      - name: subscriptionId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Subscription found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Subscription"
+        "404":
+          description: Subscription not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /subscriptions/{subscriptionId}/cancel:
+    post:
+      tags:
+      - Subscriptions
+      summary: Cancel a subscription
+      parameters:
+      - name: subscriptionId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Subscription cancelled successfully
+        "400":
+          description: Bad request
+        "404":
+          description: Subscription not found
+  /webhooks/subscription-updated:
+    post:
+      tags:
+      - Webhooks
+      summary: Webhook for subscription status changes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/webhooks_subscriptionupdated_body"
+        required: true
+      responses:
+        "200":
+          description: Webhook received successfully
+        "400":
+          description: Bad request
+components:
+  schemas:
+    User:
+      required:
+      - email
+      - firstName
+      - lastName
+      - userId
+      type: object
+      properties:
+        userId:
+          type: string
+          example: user_001
+        email:
+          type: string
+          format: email
+          example: john.doe@example.com
+        firstName:
+          type: string
+          example: John
+        lastName:
+          type: string
+          example: Doe
+        status:
+          type: string
+          example: active
+          enum:
+          - active
+          - inactive
+          - suspended
+    Subscription:
+      required:
+      - plan
+      - status
+      - subscriptionId
+      - userId
+      type: object
+      properties:
+        subscriptionId:
+          type: string
+          example: sub_001
+        userId:
+          type: string
+          example: user_001
+        plan:
+          type: string
+          example: pro
+          enum:
+          - basic
+          - pro
+          - enterprise
+        status:
+          type: string
+          example: active
+          enum:
+          - active
+          - cancelled
+          - expired
+        startDate:
+          type: string
+          format: date
+          example: 2025-09-13
+        endDate:
+          type: string
+          format: date
+          example: 2026-09-12
+    ErrorResponse:
+      required:
+      - code
+      - message
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 400
+        message:
+          type: string
+          example: Invalid request payload
+    webhooks_subscriptionupdated_body:
+      type: object
+      properties:
+        subscriptionId:
+          type: string
+          example: sub_001
+        oldStatus:
+          type: string
+          example: active
+        newStatus:
+          type: string
+          example: cancelled
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
